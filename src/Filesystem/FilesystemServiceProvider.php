@@ -43,13 +43,13 @@ class FilesystemServiceProvider extends ServiceProvider
 
             $container = Arr::get($server, 'KUBERNETES_SERVICE_HOST');
 
-            if(!is_null($container) && Arr::get($qcloud, 'qcloud_cos')) {
-		$data = $this->getTmpSecret($app);
-		if ($data) {
-			$qcloud['qcloud_secret_id'] = Arr::get($data, 'TmpSecretId');
-			$qcloud['qcloud_secret_key'] = Arr::get($data, 'TmpSecretKey');	
-			$qcloud['qcloud_token'] = Arr::get($data, 'Token');	
-		}
+            if (!is_null($container) && Arr::get($qcloud, 'qcloud_cos')) {
+                $data = $this->getTmpSecret($app);
+                if ($data) {
+                    $qcloud['qcloud_secret_id'] = Arr::get($data, 'TmpSecretId');
+                    $qcloud['qcloud_secret_key'] = Arr::get($data, 'TmpSecretKey');
+                    $qcloud['qcloud_token'] = Arr::get($data, 'Token');
+                }
             }
 
             $config = array_merge($config, $app->config('filesystems.disks.cos'));
@@ -59,7 +59,7 @@ class FilesystemServiceProvider extends ServiceProvider
             $config['cdn'] = Arr::get($qcloud, 'qcloud_cos_cdn_url', '');
 
             $config['credentials'] = [
-                'secretId'  => Arr::get($qcloud, 'qcloud_secret_id'),  //"云 API 密钥 SecretId";
+                'secretId' => Arr::get($qcloud, 'qcloud_secret_id'),  //"云 API 密钥 SecretId";
                 'secretKey' => Arr::get($qcloud, 'qcloud_secret_key'), //"云 API 密钥 SecretKey";
                 'token' => Arr::get($qcloud, 'qcloud_token', '')
             ];
@@ -76,13 +76,14 @@ class FilesystemServiceProvider extends ServiceProvider
             return $data;
         }
 
-        $client =  new Client();
+        $client = new Client();
         $response = $client->request('GET', 'http://metadata.tencentyun.com/meta-data/cam/security-credentials/TCB_QcsRole');
-	$data = json_decode($response->getBody()->getContents(), TRUE);
+        $data = json_decode($response->getBody()->getContents(), TRUE);
 
-	if (is_null($data)) return false;
+        if (is_null($data)) return false;
 
-        $app['cache']->put('tmp.secret', $data, $data['ExpiredTime'] - 10);
+        $expiredTime = $data['ExpiredTime'] - time() - 10;
+        $app['cache']->put('tmp.secret', $data, $expiredTime);
 
         return $data;
     }
