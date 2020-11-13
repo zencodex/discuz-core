@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Copyright (C) 2020 Tencent Cloud.
  *
@@ -16,29 +15,12 @@
  * limitations under the License.
  */
 
-namespace Discuz\Api;
+namespace Discuz\Common;
 
-use Discuz\Foundation\Application;
-use Laminas\Diactoros\ServerRequestFactory;
-use Psr\Http\Message\ResponseInterface;
 
-class Client
+class PubEnum
 {
-    protected $app;
-
-    public function __construct(Application $app)
-    {
-        $this->app = $app;
-    }
-
-    public function send($controller, $actor, $query, $body) : ResponseInterface
-    {
-        $controller = $this->app->make($controller);
-
-        $request = ServerRequestFactory::fromGlobals(null, $query, $body);
-
-        $request = $request->withAttribute('actor', $actor);
-
-        return $controller->handle($request);
-    }
+    const PC = 1;
+    const H5 = 2;
+    const MinProgram = 3;
 }
